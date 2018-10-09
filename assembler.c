@@ -18,8 +18,12 @@ void print_usage();
 int containLabel(char* line);
 void createLabels(int addr, char* line, struct Labels *labelArray, int index);
 void print_labelArray(struct Labels *labelArray, int length);
-unsigned long long int* translateLine(char *line);
-
+long int* translateLine(char *line, struct Labels *labelArray, int length);
+long int* rType(char *line, struct Labels *labelArray, int length);
+long int* iType(char *line, struct Labels *labelArray, int length);
+long int* jType(char *line, struct Labels *labelArray, int length);
+long int* oType(char *line, struct Labels *labelArray, int length);
+long int* fillType(char *line, struct Labels *labelArray, int length);
 
 int main (int argc, char **argv){
 	char *inputFilename = (char*)malloc(sizeof(char)*256);
@@ -102,11 +106,11 @@ int main (int argc, char **argv){
 	address = 0;
 	
 	while((fgets(line, 100, rf)) != NULL){
-		unsigned long long int *outputNumber = (unsigned long long int*)malloc(sizeof(unsigned long long int));	
+		long int *outputNumber = (long int*)malloc(sizeof(long int));	
 		
 		++address;	
 		
-		outputNumber = translateLine(line);
+		outputNumber = translateLine(line, labelArray, labelArrayIndex);
 	}
 
 
@@ -122,17 +126,17 @@ void print_usage(){
     exit(2);
 }
 
-unsigned long long int* translateLine(char *line){
-	char opcodes[9][5] = {"add", "nand", "lw", "sw", "beq", "jalr", "halt", "noop", ".fill"};		
+long int* translateLine(char *line, struct Labels *labelArray, int length){
+	char opcodes[9][6] = {"add", "nand", "lw", "sw", "beq", "jalr", "halt", "noop", ".fill"};		
 	char *strCopy = (char*)malloc(sizeof(char)*strlen(line));
 	strcpy(strCopy, line);
-	unsigned long long int *outputNumber = (unsigned long long int*)malloc(sizeof(unsigned long long int));
+	long int *outputNumber = (long int*)malloc(sizeof(long int));
 	//this FLAG indicates the program found the opcode
 	int opcodeFLAG = 0;
 	//this index indicate which opcode is using
 	int opcodeIndex;
 
-	char *firstWord = (char*)malloc(6*sizeof(char));
+	char *firstWord = (char*)malloc(7*sizeof(char));
 	strcpy(firstWord,strtok(strCopy, " \t\n\v\f\r"));
 
 	//This for loop tries to matched first word with one of the opcode
@@ -148,9 +152,11 @@ unsigned long long int* translateLine(char *line){
 
 
 	if(opcodeFLAG == 0){
-		char *secondWord = (char*)malloc(6*sizeof(char));
+		char *secondWord = (char*)malloc(7*sizeof(char));
 		strcpy(secondWord, strtok(NULL, " \t\n\v\f\r"));
-		
+
+			
+	
 		for(i=0; i<9; i++){
 			if(strcmp(secondWord, opcodes[i]) == 0){
 				opcodeFLAG = 1;
@@ -158,14 +164,108 @@ unsigned long long int* translateLine(char *line){
 				break;
 			}
 		}
-
-		printf("opcode :: %s, Line :: %s\n", opcodes[opcodeIndex], line);
-	}else{
-		printf("opcode :: %s, Line :: %s\n", opcodes[opcodeIndex], line);
 	}
+
+	if(opcodeIndex == 8){
+		//.fill condition
+		printf(".fill value :: %li\n",*(fillType(line, labelArray, length)));	
+	}else if (opcodeIndex >= 0 && opcodeIndex <= 1){
+		//r-type condition
+		printf("r type value :: %li\n", *(rType(line, labelArray, length)));
+	}else if (opcodeIndex >= 2 && opcodeIndex <= 4){
+		//i-type condition
+	}else if (opcodeIndex == 5){
+		//j-type condition
+	}else if (opcodeIndex >= 6 && opcodeIndex <= 7){
+		//o-type condition
+	}else{
+		//someting is wrong
+		printf("Line :: %s, exiting, something went wrong\n", line);
+		exit(1);
+	}
+	
 	*outputNumber = 1;
 
 	return outputNumber;
+}
+
+long int* fillType(char *line, struct Labels *labelArray, int length){
+	long int *outputNumber = (long int*)malloc(sizeof(long int));
+
+	char *strCopy = (char*)malloc(sizeof(char)*strlen(line));
+    strcpy(strCopy, line);		
+	
+	char *firstWord = (char*)malloc(7*sizeof(char));
+    strcpy(firstWord,strtok(strCopy, " \t\n\v\f\r"));
+
+	//.fill must use a label, pull out value from the label array
+	int i;
+	for(i=0; i<length; i++){
+		if(strcmp(firstWord, labelArray[i].labelName) == 0){
+			//matched label
+			*outputNumber = labelArray[i].value;
+		}
+	}
+
+	return outputNumber;
+}
+
+long int* rType(char *line, struct Labels *labelArray, int length){
+	long int *outputNumber = (long int*)malloc(sizeof(long int));
+
+    char *strCopy = (char*)malloc(sizeof(char)*strlen(line));
+    strcpy(strCopy, line);
+
+    char *firstWord = (char*)malloc(7*sizeof(char));
+    strcpy(firstWord,strtok(strCopy, " \t\n\v\f\r"));
+
+	long int opcodeDigit;
+
+	if(strcmp(firstWord, "add") == 0 || strcmp(firstWord, "nand") == 0){
+		//the first word is a opcode
+		
+		if(strcmp(firstWord, "add") == 0){
+            opcodeDigit = 0;
+        }else if(strcmp(firstWord, "nand") == 0){
+            opcodeDigit = 1;
+        }	
+
+		long int regDest = atoi(strtok(NULL, " \t\n\v\f\r"));
+        long int regA = atoi(strtok(NULL," \t\n\v\f\r"));
+        long int regB = atoi(strtok(NULL," \t\n\v\f\r"));
+	
+		opcodeDigit = opcodeDigit << 22;
+        regA = regA << 19;
+        regB = regB << 16;
+
+		*outputNumber = *outputNumber | opcodeDigit | regDest | regA | regB;
+	}else{
+		//the first word is a label
+		//the second word is a opcode
+
+		char *secondWord = (char*)malloc(7*sizeof(char));
+		strcpy(secondWord, strtok(NULL, " \t\n\v\f\r"));
+
+		if(strcmp(secondWord, "add") == 0){
+			opcodeDigit = 0;
+		}else if(strcmp(secondWord, "nand") == 0){
+			opcodeDigit = 1;
+		}
+
+		long int regDest = atoi(strtok(NULL, " \t\n\v\f\r"));
+		long int regA = atoi(strtok(NULL," \t\n\v\f\r"));
+		long int regB = atoi(strtok(NULL," \t\n\v\f\r"));	
+
+		opcodeDigit = opcodeDigit << 22;
+		regA = regA << 19;
+		regB = regB << 16;
+
+		*outputNumber = *outputNumber | opcodeDigit | regDest | regA | regB;
+
+	}
+
+
+	return outputNumber;	
 }
 
 int containLabel(char* line){
