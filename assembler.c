@@ -104,7 +104,10 @@ int main (int argc, char **argv){
 ///////////// 3rd time read and write to files////////////////////////
 	
 	rewind(rf);
-	FILE *wf = fopen(outputFilename, "w");
+	FILE *wf;
+	if(strlen(outputFilename) != 0){
+		wf = fopen(outputFilename, "w");
+	}
 	address = 0;
 	
 	while((fgets(line, 100, rf)) != NULL){
@@ -123,15 +126,14 @@ int main (int argc, char **argv){
 			if(address != numberOfLines-1){
 				fprintf(wf, "%li\n", *outputNumber);
 			}else{
-				fprintf(wf, "%li\n", *outputNumber);
+				fprintf(wf, "%li", *outputNumber);
+				fclose(wf);
 			}
 		}
 		
 		++address;	
 	}
 
-
-	fclose(wf);
 	fclose(rf);
 	
 
