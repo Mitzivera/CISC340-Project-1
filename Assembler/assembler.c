@@ -14,6 +14,7 @@ struct Labels{
 	int value;
 };
 
+void test_label(char* line);
 void print_usage();
 int containLabel(char* line);
 void createLabels(int addr, char* line, struct Labels *labelArray, int index);
@@ -154,28 +155,29 @@ long int* translateLine(char *line, struct Labels *labelArray, int length, int c
 	int opcodeFLAG = 0;
 	//this index indicate which opcode is using
 	int opcodeIndex;
+	int labelFLAG = 0;
+
+	labelFLAG = containLabel(line);
 
 	char *firstWord = (char*)malloc(7*sizeof(char));
 	strcpy(firstWord,strtok(strCopy, " \t\n\v\f\r"));
 
-	//This for loop tries to matched first word with one of the opcode
-	int i;
-	for(i=0; i<9; i++){
-		if(strcmp(firstWord, opcodes[i]) == 0){
-			//opcode matched
-			opcodeFLAG = 1;
-			opcodeIndex = i;
-			break;
+	if(labelFLAG == 0){
+		//This for loop tries to matched first word with one of the opcode
+		int i;
+		for(i=0; i<9; i++){
+			if(strcmp(firstWord, opcodes[i]) == 0){
+				//opcode matched
+				opcodeFLAG = 1;
+				opcodeIndex = i;
+				break;
+			}
 		}
-	}	
-
-
-	if(opcodeFLAG == 0){
+	}else{
 		char *secondWord = (char*)malloc(7*sizeof(char));
 		strcpy(secondWord, strtok(NULL, " \t\n\v\f\r"));
 
-			
-	
+		int i;
 		for(i=0; i<9; i++){
 			if(strcmp(secondWord, opcodes[i]) == 0){
 				opcodeFLAG = 1;
@@ -183,6 +185,11 @@ long int* translateLine(char *line, struct Labels *labelArray, int length, int c
 				break;
 			}
 		}
+	}
+
+	if(opcodeFLAG == 0){
+		fprintf(stderr, "%s : %s\n", "Error: opcode is not recognized", line);
+		exit(0); 
 	}
 
 	if(opcodeIndex == 8){
@@ -446,8 +453,8 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
   	         	}
             }
 			if(matchedFLAG == 0){
-				printf("Line :: %d, label in the offset field is not exists", currAddr);
-				exit(1);
+				fprintf(stderr,"%s : %s\n", "Error: label in the offset field does not exists", offsetChar);
+				exit(0);
 			}
 			
        	}
@@ -456,6 +463,11 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
 	opcodeDigit = opcodeDigit << 22;
 	regA = regA << 19;
     regB = regB << 16;
+
+	printf("%s : %li\n", "offset number is :: ", offsetDigit);
+	if(offsetDigit > 32767 || offsetDigit < -32768){
+		fprintf(stderr, "%s: %li\n", "Error: offset does not fit in 16-bit", offsetDigit);
+	}
 
 	//0000 FFFF
 	long int mask = 65535;
@@ -466,6 +478,28 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
 	return outputNumber;
 }
 
+void test_label(char* line){
+	//check that label doesn't start with number
+	if(isalpha(line[0])==0){
+		fprintf(stderr,"%s : %s\n","Error: a label cannot start with a number", line);
+		exit(0);
+	}
+
+	//check that label is alphanumeric
+	for(int i=0; i < strlen(line); i++){
+		if(isalnum(line[i])== 0){
+			fprintf(stderr, "%s : %s\n", "Error: a label has to be alphanumeric", line);
+			exit(0);
+		}
+	}
+
+	//check length of label
+	if(strlen(line) > 6){
+		fprintf(stderr, "%s : %s\n", "Error: length of label cannot exceed 6 characters", line);
+		exit(0);
+	}
+
+}
 
 int containLabel(char* line){
 	if(!isspace((int)line[0])){
@@ -491,6 +525,7 @@ void createLabels(int addr, char* line, struct Labels *labelArray, int index){
 	newLabel.address = addr;
 
 	label = strtok(line, " \t\n\v\f\r");
+	test_label(label);
 	strcpy(newLabel.labelName, label);
 
 	//check if this is a .fill line
@@ -523,6 +558,19 @@ void createLabels(int addr, char* line, struct Labels *labelArray, int index){
 				}
 			}
 		}
+	}
+
+	int i;
+	for(i=0; i<index; i++){
+		if(strcmp(newLabel.labelName, labelArray[i].labelName) == 0){
+			fprintf(stderr, "%s : %s\n", "Error: This label is duplicated", newLabel.labelName);
+			exit(0);
+		}
+	}
+
+	if(newLabel.value > 32767 || newLabel.value < -32768){
+		fprintf(stderr, "%s : %s : %d\n", "Error: This .fill label contains a number which does not fit in 16-bit", newLabel.labelName, newLabel.value);
+            exit(0);
 	}
 
 	labelArray[index] = newLabel;	
