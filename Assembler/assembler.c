@@ -18,7 +18,6 @@ void test_label(char* line);
 void print_usage();
 int containLabel(char* line);
 void createLabels(int addr, char* line, struct Labels *labelArray, int index);
-void print_labelArray(struct Labels *labelArray, int length);
 long int* translateLine(char *line, struct Labels *labelArray, int length, int currAddr);
 long int* rType(char *line);
 long int* iType(char *line, struct Labels *labelArray, int length, int currAddr);
@@ -142,8 +141,8 @@ int main (int argc, char **argv){
 }
 
 void print_usage(){
-    printf("Usage: ./assembler -i program.as > program.mc | ./assembler -i program.as -o program.mc | ./assembler -i program.as\n");
-    exit(2);
+    fprintf(stderr, "Usage: ./assembler -i program.as > program.mc | ./assembler -i program.as -o program.mc | ./assembler -i program.as\n");
+    exit(0);
 }
 
 long int* translateLine(char *line, struct Labels *labelArray, int length, int currAddr){
@@ -188,7 +187,7 @@ long int* translateLine(char *line, struct Labels *labelArray, int length, int c
 	}
 
 	if(opcodeFLAG == 0){
-		fprintf(stderr, "%s : %s\n", "Error: opcode is not recognized", line);
+		fprintf(stderr, "%s : %s\n", "Error: opcode is not recognized\n", line);
 		exit(0); 
 	}
 
@@ -209,8 +208,8 @@ long int* translateLine(char *line, struct Labels *labelArray, int length, int c
 		outputNumber = oType(line);	
 	}else{
 		//someting is wrong
-		printf("Line :: %s, exiting, something went wrong\n", line);
-		exit(1);
+		fprintf(stderr, "%s : %s\n", "Error: something went wrong when detecting the opcode for this line\n", line);
+		exit(0);
 	}
 	
 	return outputNumber;
@@ -307,8 +306,8 @@ long int* jType(char *line){
 	if(strcmp(opcodeChar, "jalr") == 0){
 		opcodeDigit = 5;
 	}else{
-		printf("something went wrong :: J-type translation\n");
-		exit(1);
+		fprintf(stderr, "%s : %s\n", "Error: something went wrong when translating this jalr instruction\n", line);
+		exit(0);
 	}
 
 	long int regA = atoi(strtok(NULL, " \t\n\v\f\r"));
@@ -352,8 +351,8 @@ long int* oType(char *line){
 	}else if(strcmp(opcodeChar, "noop") == 0){
 		opcodeDigit = 7;
 	}else{
-		printf("something went wrong :: o-type translation");
-		exit(1);
+		fprintf(stderr, "%s : %s\n", "Error: something went wrong when translating this O-Type instruction\n", line);
+		exit(0);
 	}
 
 	opcodeDigit = opcodeDigit << 22;
@@ -396,8 +395,8 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
 	}else if(strcmp(opcodeChar, "beq") == 0){
 		opcodeDigit = 4;
 	}else{
-		printf("something went wrong :: i-type translation");
-        exit(1);	
+		fprintf(stderr, "%s : %s\n", "Error: something went wrong when translating this I-Type instruction\n", line);
+        exit(0);	
 	}
 
 	long int regA = atoi(strtok(NULL," \t\n\v\f\r"));
@@ -432,8 +431,8 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
 						if(labelArray[i].isDotFill == 1){
 							offsetDigit = labelArray[i].address;
 						}else{
-							printf("Line %d :: should not put a .fill label for opcode lw or sw", currAddr);
-							exit(1);
+							fprintf(stderr, "%s: %s\n", "Error: for lw and sw, label must point to a .fill\n", line);
+							exit(0);
 						}
 					}else if(opcodeDigit == 4){
 						//opcode is beq
@@ -442,11 +441,11 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
 							//offsetField = destination address - (PC + 1)
 							offsetDigit = (long int)(labelArray[i].address - (currAddr + 1));
 						}else{
-							printf("Line %d :: should not put a address label for opcode beq", currAddr);
-							exit(1);
+							fprintf(stderr, "%s: %s\n", "Error: for beq, label must not point to a .fil", line);
+							exit(0);
 						}
 					}else {
-						printf("opcode not identify, translating in i type");
+						fprintf(stderr, "%s: %s\n", "Error: opcode not identify, translating in i type", line);
 					}	
 
 					break;
@@ -464,9 +463,9 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
 	regA = regA << 19;
     regB = regB << 16;
 
-	printf("%s : %li\n", "offset number is :: ", offsetDigit);
 	if(offsetDigit > 32767 || offsetDigit < -32768){
 		fprintf(stderr, "%s: %li\n", "Error: offset does not fit in 16-bit", offsetDigit);
+		exit(0);
 	}
 
 	//0000 FFFF
@@ -574,13 +573,6 @@ void createLabels(int addr, char* line, struct Labels *labelArray, int index){
 	}
 
 	labelArray[index] = newLabel;	
-}
-
-void print_labelArray(struct Labels *labelArray, int length){
-	int i;
-	for(i=0; i<length; i++){
-		printf("Label :: %s, Address :: %d, isDotFill? :: %d, Immediate Value :: %d \n", labelArray[i].labelName, labelArray[i].address, labelArray[i].isDotFill, labelArray[i].value);
-	}
 }
 
 
