@@ -24,6 +24,7 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
 long int* jType(char *line);
 long int* oType(char *line);
 long int* fillType(char *line, struct Labels *labelArray, int length);
+void checkRegRange(int reg, char *line);
 
 int main (int argc, char **argv){
 	char *inputFilename = (char*)malloc(sizeof(char)*256);
@@ -143,6 +144,12 @@ int main (int argc, char **argv){
 void print_usage(){
     fprintf(stderr, "Usage: ./assembler -i program.as > program.mc | ./assembler -i program.as -o program.mc | ./assembler -i program.as\n");
     exit(0);
+}
+
+void checkRegRange(int reg, char *line){
+	if(reg > 7 || reg < 0){
+		fprintf(stderr, "%s: %s\n", "Error: Register does not exist", line);
+	}
 }
 
 long int* translateLine(char *line, struct Labels *labelArray, int length, int currAddr){
@@ -271,6 +278,10 @@ long int* rType(char *line){
     long int regA = atoi(strtok(NULL," \t\n\v\f\r"));
    	long int regB = atoi(strtok(NULL," \t\n\v\f\r"));
 
+	checkRegRange(regA, line);
+	checkRegRange(regB, line);
+	checkRegRange(regDest, line);
+
     opcodeDigit = opcodeDigit << 22;
     regA = regA << 19;
     regB = regB << 16;
@@ -312,6 +323,9 @@ long int* jType(char *line){
 
 	long int regA = atoi(strtok(NULL, " \t\n\v\f\r"));
 	long int regB = atoi(strtok(NULL, " \t\n\v\f\r"));
+
+	checkRegRange(regA, line);
+	checkRegRange(regB, line);
 
 	opcodeDigit = opcodeDigit << 22;
 	regA = regA << 19;
@@ -401,6 +415,9 @@ long int* iType(char *line, struct Labels *labelArray, int length, int currAddr)
 
 	long int regA = atoi(strtok(NULL," \t\n\v\f\r"));
     long int regB = atoi(strtok(NULL," \t\n\v\f\r"));
+	
+	checkRegRange(regA, line);
+	checkRegRange(regB, line);
 	
 	char *offsetChar = (char*)malloc(7*sizeof(char));
 	strcpy(offsetChar, strtok(NULL, " \t\n\v\f\r"));
