@@ -1,22 +1,65 @@
 #include <stdio.h>
+#include <getopt.h>
+#include <stdlib.h>
+#include <string.h>
 
-void print_state(statetype *stateptr);
-
-const int NUMMEMORY = 65536;
-const int NUMREGS = 8;
+#define NUMMEMORY 65536
+#define NUMREGS 8
 
 typedef struct state_struct {
 	int pc;
-	int mem[NUMMEMORY];
+	long int mem[NUMMEMORY];
 	int reg[NUMREGS];
 	int num_memory;
-} statetype;
+}statetype;
 
-int main(){
-	printf("hello, world\n");
+void print_state(statetype *stateptr);
+void print_usage();
 
+int main (int argc, char **argv){
+	char *inputFilename = (char*)malloc(sizeof(char)*256);
+
+	int opt;
+
+	char *line = (char*)malloc(sizeof(char)*100);
+	int address;
+	
+/////////////////     taking input argument ///////////////////////
+
+	while((opt = getopt(argc, argv, "i:")) != -1){
+		switch(opt){
+			case 'i':
+				inputFilename = optarg;
+				break;				
+			
+			default:
+				print_usage();
+		}
+	}
+
+/////////////// initialize registers and program counter //////////////
+	statetype *machine_state;
+	machine_state->pc = 0;
+	for(int i = 0; i < NUMREGS; i++)
+	{
+		machine_state->reg[i] = 0;
+	} 
+	
+////////////start reading the file line by line //////////
+        FILE *rf = fopen(inputFilename, "r");
+
+        while((fgets(line, 100, rf)) != NULL){
+		char ** pEnd;
+                long int temp =  strtol(strtok(line, " \t\n\v\f\r"), pEnd, 10);
+		
+        }
+	fclose(rf);
 }
 
+void print_usage(){
+    fprintf(stderr, "Usage: ./assembler -i program.mc\n");
+    exit(0);
+}
 
 void print_state(statetype *stateptr){
 	int i;
@@ -24,8 +67,8 @@ void print_state(statetype *stateptr){
 	printf("\tpc %d\n", stateptr->pc);
 	printf("\tmemory:\n");
 
-	for(i = 0; i < stateptr->nummemory; i++){
-		printf("\t\tmem[%d]=%d\n", i, stateptr->mem[i]);
+	for(i = 0; i < stateptr->num_memory; i++){
+		printf("\t\tmem[%d]=%li\n", i, stateptr->mem[i]);
 	}
 
 	printf("\tregisters:\n");
