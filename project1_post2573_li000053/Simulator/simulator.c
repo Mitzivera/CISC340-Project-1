@@ -72,7 +72,6 @@ int main (int argc, char **argv){
 	int regB;
 	int instr;
 	int offset;
-	int haltFlag = 0;
 	while(type.pc < type.num_memory) {
 		print_state(&type);
 		num_instructions += 1;
@@ -119,7 +118,7 @@ int main (int argc, char **argv){
 			regA = (instr & (7 << 19)) >> 19;
                         regB = (instr & (7 << 16)) >> 16;
 			type.reg[regA] = type.pc + 1;
-			type.pc = type.reg[regB];
+			type.pc = type.reg[regB] - 1;
 		}
 		else if(opcode == HALT){
 			printf("machine halted\n");

@@ -1,0 +1,13 @@
+	lw	1	0	five	load reg1 with 5(symbolic address)
+	lw	2	1	3	load reg2 with -1(numeric address)
+	lw  5	0	seven	load reg5 with 7(symbolic address)
+	jalr 4 5
+start	add	1	2	1	decrement reg1
+	beq	0	1	2	goto end of program when reg1==0
+	beq	0	0	start	go back to the beginning of the loop
+	noop
+done	halt				end of progam
+seven 	.fill	7
+five	.fill	5
+neg1	.fill	-1
+stAdd	.fill	start			will contain the address of start (2)
