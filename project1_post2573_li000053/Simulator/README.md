@@ -14,6 +14,7 @@ The program should print the state of UST-3400 before each instruction is execut
 
 ## Files Used
 **simulator.c** : takes machine code and simulates the behaviors of the instructions on the UST-3400 machine.
+
 **makefile** : compiles and cleans our simulator.c
 
 ### Test Suite
