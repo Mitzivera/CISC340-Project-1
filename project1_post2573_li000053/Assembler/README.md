@@ -24,15 +24,15 @@ per line.
 	duplicateLabels.as : tests that when there are duplicate labels, the program throws an error message and terminates
 	labelDoesNotExist.as : tests that when a label does not exist when referenced, the program throws an error message and terminates
 	labelSameNameAsOpcode.as : tests that when a label is the same name as an opcode, the program interprets it as a label
-	labelStartsWithNumber.as : tests that when a label starts with a number, the program throws an error message and terminates
+	labelStartsWithNumber.as : tests that when a label starts with a number, the proram throws an error message and terminates
 	labelTooLong.as : tests that when a label is longer than 6 characters, the program throws an error message and terminates
 	labelWithWeirdCharacter.as : tests that when there is a non-alphanumeric character in a label, the program throws an error message and terminates
 	noLabelsAndOnlySpacesWithComments.as : tests an assembly-language program with no labels, spaces as white space, and comments
-  offsetFieldGreaterThan16Bits.as : tests that when an offsetfield (numeric address) cannot fit into 16 bits, the program throws an error message and terminates
-  offsetFieldGreaterThan16Bits2.as : tests that when an offsetfield (symbolic address / using label) cannot fit into 16 bits, the program throws an error message and terminates
-  offsetField LessThan16Bits.as : tests that when an offsetfield cannot fit into 16 bits (negative), the program throws an error message and terminates
+	offsetFieldGreaterThan16Bits.as : tests that when an offsetfield (numeric address) cannot fit into 16 bits, the program throws an error message and terminates
+	offsetFieldGreaterThan16Bits2.as : tests that when an offsetfield (symbolic address / using label) cannot fit into 16 bits, the program throws an error message and terminates
+	offsetField LessThan16Bits.as : tests that when an offsetfield cannot fit into 16 bits (negative), the program throws an error message and terminates
 	otherOpcodes.as : tests nand, jalr, sw
-  registerOutOfRange.as : tests that when a register is not between 0 and 7, the program throws an error message and terminates
-  testExample.as : tests the example included in the project description document
+	registerOutOfRange.as : tests that when a register is not between 0 and 7, the program throws an error message and terminates
+	testExample.as : tests the example included in the project description document
 	unrecognizedOpcode.as : tests an opcode that doesn't exist on the UST-3400 computer, the program throws an error message and terminates
 	
